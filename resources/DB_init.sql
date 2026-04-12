@@ -153,8 +153,63 @@ CREATE TABLE IF NOT EXISTS `UrbanNexus`.`admin` (
                                                     `username` VARCHAR(50) NOT NULL UNIQUE,
                                                     `password_hash` VARCHAR(255) NOT NULL,
                                                     `role` ENUM('SuperAdmin', 'Technician', 'Resident') NOT NULL,
-                                                    PRIMARY KEY (`admin_id`)
+                                                    `resident_id` INT NULL,
+                                                    `tech_id` INT NULL,
+                                                    PRIMARY KEY (`admin_id`),
+                                                    CONSTRAINT `fk_admin_resident` FOREIGN KEY (`resident_id`) REFERENCES `UrbanNexus`.`resident`(`resident_id`) ON DELETE CASCADE,
+                                                    CONSTRAINT `fk_admin_tech` FOREIGN KEY (`tech_id`) REFERENCES `UrbanNexus`.`technician`(`tech_id`) ON DELETE CASCADE
 ) ENGINE = InnoDB DEFAULT CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci;
+
+-- ==========================================
+-- FORENSIC AUDIT LEDGER
+-- ==========================================
+
+-- 1. Create the Audit Log Table
+CREATE TABLE IF NOT EXISTS `UrbanNexus`.`audit_log` (
+                                                        `log_id` INT AUTO_INCREMENT PRIMARY KEY,
+                                                        `table_affected` VARCHAR(50) NOT NULL,
+                                                        `record_id` VARCHAR(50) NOT NULL,
+                                                        `action_type` VARCHAR(50) NOT NULL,
+                                                        `details` TEXT NOT NULL,
+                                                        `changed_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARACTER SET=utf8mb4;
+
+-- 2. TRIGGER: Log when a Payment Status Changes (e.g., Pending -> Overdue)
+DELIMITER //
+DROP TRIGGER IF EXISTS LogPaymentUpdate//
+CREATE TRIGGER LogPaymentUpdate
+    AFTER UPDATE ON `UrbanNexus`.`payment`
+    FOR EACH ROW
+BEGIN
+    -- Only log if the status actually changed
+    IF OLD.status != NEW.status THEN
+        INSERT INTO `UrbanNexus`.`audit_log` (table_affected, record_id, action_type, details)
+        VALUES (
+                   'payment',
+                   OLD.trans_no,
+                   'UPDATE',
+                   CONCAT('Status changed from [', OLD.status, '] to [', NEW.status, ']')
+               );
+    END IF;
+END//
+DELIMITER ;
+
+-- 3. TRIGGER: Log if an Amenity Booking is Cancelled/Deleted
+DELIMITER //
+DROP TRIGGER IF EXISTS LogAmenityDeletion//
+CREATE TRIGGER LogAmenityDeletion
+    AFTER DELETE ON `UrbanNexus`.`amenity_mgmt`
+    FOR EACH ROW
+BEGIN
+    INSERT INTO `UrbanNexus`.`audit_log` (table_affected, record_id, action_type, details)
+    VALUES (
+               'amenity_mgmt',
+               OLD.booking_id,
+               'DELETE',
+               CONCAT('Booking deleted for resident ID: ', OLD.resident_id)
+           );
+END//
+DELIMITER ;
 
 -- -----------------------------------------------------
 -- Table `UrbanNexus`.`pricing`
@@ -358,6 +413,73 @@ BEGIN
         WHERE tm.trans_no = v_trans_no;
 
     END IF;
+END//
+DELIMITER ;
+
+-- STORED PROCEDURE: Auto-Book Amenity & Generate Invoice
+DELIMITER //
+DROP PROCEDURE IF EXISTS AutoBookAmenity//
+CREATE PROCEDURE AutoBookAmenity(
+    IN p_resident_id INT,
+    IN p_amenity_id INT,
+    IN p_date DATE,
+    IN p_slot INT,
+    IN p_capacity_booked INT
+)
+BEGIN
+    DECLARE v_trans_no VARCHAR(50);
+    DECLARE v_booking_id VARCHAR(50);
+    DECLARE v_base_cost DECIMAL(10,2);
+    DECLARE v_amenity_name VARCHAR(100);
+
+    -- 1. Get the amenity name to look up the price
+    SELECT name INTO v_amenity_name FROM `UrbanNexus`.`amenity` WHERE amenity_id = p_amenity_id;
+
+    -- 2. Dynamically fetch the price from the pricing table
+    SELECT base_price INTO v_base_cost
+    FROM `UrbanNexus`.`pricing`
+    WHERE item_name = v_amenity_name AND category = 'Amenity' LIMIT 1;
+
+    -- Safety Check: Ensure the amenity exists and has a price
+    IF v_base_cost IS NULL THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Booking Failed: Invalid amenity or no pricing found.';
+    END IF;
+
+    -- 3. Start Transaction
+    START TRANSACTION;
+
+    -- Generate random IDs for the transaction and booking
+    SET v_trans_no = CONCAT('TXN-AMEN-', FLOOR(RAND() * 100000));
+    SET v_booking_id = CONCAT('BKG-', FLOOR(RAND() * 100000));
+
+    -- 4. Create Payment (Your GST Trigger will auto-fire here!)
+    INSERT INTO `UrbanNexus`.`payment` (trans_no, status, type, cost)
+    VALUES (v_trans_no, 'Pending', 'Amenity', v_base_cost);
+
+    -- 5. Book the Amenity (Your CheckAmenityCapacity Trigger will auto-fire here!)
+    INSERT INTO `UrbanNexus`.`amenity_mgmt`
+    (booking_id, resident_id, amenity_id, trans_no, date, status, capacity_booked, slot)
+    VALUES
+        (v_booking_id, p_resident_id, p_amenity_id, v_trans_no, p_date, 'Confirmed', p_capacity_booked, p_slot);
+
+    -- 6. Commit the transaction
+    COMMIT;
+
+    -- 7. Return the generated Invoice details back to Node.js
+    SELECT
+        am.booking_id,
+        a.name AS amenity_name,
+        p.trans_no,
+        v_base_cost AS base_price,
+        p.cost AS total_with_gst,
+        am.date AS booking_date,
+        am.slot,
+        am.capacity_booked
+    FROM `UrbanNexus`.`amenity_mgmt` am
+             JOIN `UrbanNexus`.`amenity` a ON am.amenity_id = a.amenity_id
+             JOIN `UrbanNexus`.`payment` p ON am.trans_no = p.trans_no
+    WHERE am.booking_id = v_booking_id;
+
 END//
 DELIMITER ;
 
