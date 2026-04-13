@@ -10,7 +10,7 @@ export default function ResidentDashboard() {
     const [loading, setLoading] = useState(false);
     const [profile, setProfile] = useState({ name: '', contact: '', password: '' });
 
-    // Fetch current profile info when entering settings
+    // Synchronize current profile spec when entering settings
     useEffect(() => {
         if (view === 'settings') {
             const syncProfile = async () => {
@@ -33,17 +33,59 @@ export default function ResidentDashboard() {
         finally { setLoading(false); }
     };
 
+    const handlePayment = async (transNo) => {
+        try {
+            await api.post(`/payments/${transNo}/pay`);
+            alert("Payment successful! Your grid status is now clear.");
+            fetchDues();
+        } catch (error) { alert("Payment failed."); }
+    };
+
     const handleProfileUpdate = async (e) => {
         e.preventDefault();
         try {
             await api.put('/profile/update', profile);
-            alert("Profile updated and synced with the grid!");
+            alert("Profile synchronized with the grid!");
         } catch (err) { alert("Update failed"); }
     };
 
     if (view === 'book-amenity') return <BookAmenity onBack={() => setView('menu')} />;
     if (view === 'book-tech') return <BookTechnician onBack={() => setView('menu')} />;
 
+    // --- Sub-View: Dues Table ---
+    if (view === 'dues') {
+        return (
+            <div className="p-8 max-w-4xl mx-auto">
+                <button onClick={() => setView('menu')} className="flex items-center text-blue-600 mb-6 font-bold uppercase text-xs">
+                    <ChevronLeft className="w-4 h-4 mr-1" /> Back to Paddock
+                </button>
+                <h2 className="text-2xl font-bold mb-6 italic tracking-tighter uppercase">Pending Invoices</h2>
+                <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                    <table className="w-full text-left">
+                        <thead className="bg-gray-50 text-[10px] uppercase font-bold text-gray-400">
+                        <tr><th className="px-6 py-4">TXN #</th><th className="px-6 py-4">Type</th><th className="px-6 py-4">Amount (Incl. GST)</th><th className="px-6 py-4 text-right">Action</th></tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-100">
+                        {data.length === 0 ? (
+                            <tr><td colSpan="4" className="text-center py-10 text-gray-400 italic">No pending dues. Clear for racing!</td></tr>
+                        ) : data.map((inv) => (
+                            <tr key={inv.trans_no}>
+                                <td className="px-6 py-4 font-mono text-sm">{inv.trans_no}</td>
+                                <td className="px-6 py-4 text-sm font-semibold">{inv.service_type}</td>
+                                <td className="px-6 py-4 font-bold text-blue-600">₹{inv.cost}</td>
+                                <td className="px-6 py-4 text-right">
+                                    <button onClick={() => handlePayment(inv.trans_no)} className="bg-green-600 text-white px-4 py-1.5 rounded text-xs font-bold uppercase hover:bg-green-700">Pay Now</button>
+                                </td>
+                            </tr>
+                        ))}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        );
+    }
+
+    // --- Sub-View: Settings ---
     if (view === 'settings') {
         return (
             <div className="p-8 max-w-xl mx-auto">
@@ -65,16 +107,17 @@ export default function ResidentDashboard() {
                             <label className="text-[10px] font-bold text-gray-400 uppercase">New Password</label>
                             <input type="password" placeholder="••••••••" className="w-full p-3 border rounded-xl bg-gray-50" onChange={e => setProfile({...profile, password: e.target.value})} />
                         </div>
-                        <button type="submit" className="w-full bg-blue-600 text-white py-3 rounded-xl font-bold uppercase hover:bg-blue-700">Save Changes</button>
+                        <button type="submit" className="w-full bg-blue-600 text-white py-3 rounded-xl font-bold uppercase">Save Changes</button>
                     </form>
                 </div>
             </div>
         );
     }
 
+    // --- Main Dashboard Menu ---
     return (
         <div className="p-8 space-y-8 max-w-7xl mx-auto">
-            <header><h1 className="text-3xl font-bold italic underline decoration-blue-500 uppercase">Resident Portal</h1></header>
+            <header><h1 className="text-3xl font-bold italic underline decoration-blue-500 uppercase tracking-tighter">Resident Portal</h1></header>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
                 <div onClick={fetchDues} className="bg-white p-8 rounded-2xl border border-gray-100 hover:border-blue-500 transition-all cursor-pointer group relative">
                     {loading && <Loader2 className="animate-spin absolute top-4 right-4 text-blue-600" />}

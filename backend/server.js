@@ -39,7 +39,8 @@ app.post('/api/login', async (req, res) => {
             {
                 id: admin.admin_id,
                 role: admin.role,
-                resident_id: admin.resident_id
+                resident_id: admin.resident_id,
+                tech_id: admin.tech_id
             },
             process.env.JWT_SECRET,
             { expiresIn: '24h' }
@@ -117,21 +118,39 @@ app.post('/api/technicians', authenticateToken, async (req, res) => {
     const { tech_id, name, contact, skill } = req.body;
     if (req.admin.role !== 'SuperAdmin') return res.status(403).json({ error: 'Admin only.' });
 
+    // Validate that tech_id is a number
+    if (isNaN(tech_id)) return res.status(400).json({ error: 'Tech ID must be a number.' });
+
+    const connection = await db.getConnection(); // Get connection for transaction
     try {
-        // 1. Insert into technician table
-        await db.query('INSERT INTO technician (tech_id, name, contact, skill) VALUES (?, ?, ?, ?)',
-            [tech_id, name, contact, skill]);
+        await connection.beginTransaction();
 
-        // 2. Create Login (e.g., username: toto_101)
+        await connection.query(
+            'INSERT INTO technician (tech_id, name, contact, skill) VALUES (?, ?, ?, ?)',
+            [tech_id, name, contact, skill]
+        );
+
         const username = name.toLowerCase().replace(/\s+/g, '_') + "_" + tech_id;
-        const hashedPassword = await bcrypt.hash('pitstop123', 10); // Default password
+        const hashedPassword = await bcrypt.hash('pitstop123', 10);
 
-        await db.query('INSERT INTO admin (username, password_hash, role, tech_id) VALUES (?, ?, "Technician", ?)',
-            [username, hashedPassword, tech_id]);
+        await connection.query(
+            'INSERT INTO admin (username, password_hash, role, tech_id) VALUES (?, ?, "Technician", ?)',
+            [username, hashedPassword, tech_id]
+        );
 
+        await connection.commit();
         res.status(201).json({ message: 'Technician & Login Created!', username, password: 'pitstop123' });
+
     } catch (error) {
-        res.status(500).json({ error: 'Failed to add technician.' });
+        await connection.rollback();
+        console.error("Crew Recruitment Error:", error.message);
+
+        if (error.code === 'ER_DUP_ENTRY') {
+            return res.status(400).json({ error: 'This Tech ID or Username is already taken on the grid.' });
+        }
+        res.status(500).json({ error: 'Failed to add technician to the grid.' });
+    } finally {
+        connection.release();
     }
 });
 

@@ -1,12 +1,12 @@
 import { useState } from 'react';
-import { Users, Wrench, CreditCard, Activity } from 'lucide-react';
+import { Users, Wrench, CreditCard } from 'lucide-react';
 import ResidentDirectory from './ResidentDirectory';
 import TechnicianDirectory from './TechnicianDirectory';
 import FinancialManager from './FinancialManager';
 import AuditLog from './AuditLog';
 
 export default function AdminDashboard() {
-    const [activeTab, setActiveTab] = useState('residents'); // residents, technicians, financials
+    const [activeTab, setActiveTab] = useState('residents');
 
     const tabs = [
         { id: 'residents', label: 'Grid (Residents)', icon: Users },
@@ -18,7 +18,7 @@ export default function AdminDashboard() {
         <div className="p-8 space-y-8 max-w-7xl mx-auto">
             <header>
                 <h1 className="text-3xl font-bold text-gray-900 italic uppercase tracking-tighter">PIT WALL: COMMAND CENTER</h1>
-                <p className="text-gray-500 text-sm">Managing community operations and real-time logs.</p>
+                <p className="text-gray-500 text-sm">Managing community operations and real-time forensic logs.</p>
             </header>
 
             <nav className="flex space-x-4 border-b border-gray-100">
