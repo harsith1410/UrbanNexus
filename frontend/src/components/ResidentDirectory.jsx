@@ -8,14 +8,14 @@ export default function ResidentDirectory() {
     const [showModal, setShowModal] = useState(false);
     const [formData, setFormData] = useState({
         name: '', house_block: '', house_floor: '', house_unit: '',
-        ownership_status: 'Owner', contact: '', no_of_members: 1
+        ownership_status: '', contact: '', no_of_members: 1
     });
 
     const fetchResidents = async () => {
         try {
             const res = await api.get(`/admin/residents/search?name=${searchTerm}`);
             setResidents(res.data.residents);
-        } catch (err) { console.error("Grid lookup failed"); }
+        } catch (err) { console.error("Resident lookup failed"); }
     };
 
     const handleAdd = async (e) => {
@@ -44,7 +44,7 @@ export default function ResidentDirectory() {
                 <h2 className="text-lg font-bold text-gray-800 italic uppercase">Resident Directory</h2>
                 <div className="relative flex-1 max-w-md">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                    <input type="text" placeholder="Search drivers..." className="w-full pl-10 pr-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-blue-500"
+                    <input type="text" placeholder="Search Residents..." className="w-full pl-10 pr-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-blue-500"
                            onChange={(e) => setSearchTerm(e.target.value)} />
                 </div>
                 <button onClick={() => setShowModal(true)} className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center space-x-2">
@@ -84,6 +84,17 @@ export default function ResidentDirectory() {
                                 <input type="text" placeholder="Unit" className="p-2 border rounded-lg" onChange={e => setFormData({...formData, house_unit: e.target.value})} />
                             </div>
                             <input type="text" placeholder="Contact Number" className="w-full p-2 border rounded-lg" onChange={e => setFormData({...formData, contact: e.target.value})} />
+
+                            <select className="w-full p-3 border border-gray-200 rounded-xl bg-gray-50 focus:ring-2 focus:ring-blue-500 outline-none"
+                                    onChange={(e) => setFormData({...formData, ownership_status: e.target.value})}>
+                                <option value="Owner">Owner</option>
+                                <option value="Tenant">Tenant</option>
+                            </select>
+                            <div>
+                                <label className="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-widest">Number of Members (1-10)</label>
+                                <input type="number" min="1" max="10" required className="w-full p-3 border border-gray-200 rounded-xl bg-gray-50 focus:ring-2 focus:ring-blue-500 outline-none"
+                                       onChange={(e) => setFormData({...formData, no_of_members: parseInt(e.target.value)})} />
+                            </div>
                             <button type="submit" className="w-full bg-blue-600 text-white py-3 rounded-xl font-bold uppercase">Add to Grid</button>
                         </form>
                     </div>

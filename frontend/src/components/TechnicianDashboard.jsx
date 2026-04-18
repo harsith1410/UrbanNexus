@@ -25,7 +25,7 @@ export default function TechnicianDashboard() {
 
     return (
         <div className="p-8 max-w-5xl mx-auto space-y-8">
-            <h1 className="text-2xl font-bold italic uppercase tracking-tighter border-b border-gray-200 pb-4">Pit Crew Assignment Sheet</h1>
+            <h1 className="text-2xl font-bold italic uppercase tracking-tighter border-b border-gray-200 pb-4">Task Assignment Sheet</h1>
             <div className="grid gap-4">
                 {loading ? <Loader2 className="animate-spin text-blue-600 mx-auto" /> :
                     tasks.map(task => (

@@ -35,7 +35,7 @@ export default function FinancialManager() {
             <div className="p-6 border-b border-gray-100 flex justify-between items-center gap-4">
                 <div className="relative flex-1">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                    <input type="text" placeholder="Search by Driver Name..." className="w-full pl-10 pr-4 py-2 border rounded-lg" onChange={e => setSearch(e.target.value)} />
+                    <input type="text" placeholder="Search by Resident Name..." className="w-full pl-10 pr-4 py-2 border rounded-lg" onChange={e => setSearch(e.target.value)} />
                 </div>
                 <button onClick={runOverdueScan} className="flex items-center space-x-2 bg-orange-100 text-orange-600 px-4 py-2 rounded-lg text-xs font-bold uppercase italic">
                     <RefreshCw className="w-3 h-3" /> <span>Run Overdue Scan</span>

@@ -1,32 +1,33 @@
 import { useState } from 'react';
-import { Users, Wrench, CreditCard } from 'lucide-react';
+import { Users, Wrench, CreditCard, Building } from 'lucide-react'; // Added Building icon
 import ResidentDirectory from './ResidentDirectory';
 import TechnicianDirectory from './TechnicianDirectory';
 import FinancialManager from './FinancialManager';
+import AmenityDirectory from './AmenityDirectory'; // Imported new component
 import AuditLog from './AuditLog';
 
 export default function AdminDashboard() {
     const [activeTab, setActiveTab] = useState('residents');
 
     const tabs = [
-        { id: 'residents', label: 'Grid (Residents)', icon: Users },
-        { id: 'technicians', label: 'Pit Crew', icon: Wrench },
+        { id: 'residents', label: 'Residents', icon: Users },
+        { id: 'technicians', label: 'Technical Staff', icon: Wrench },
+        { id: 'amenities', label: 'Facilities', icon: Building },
         { id: 'financials', label: 'Financials', icon: CreditCard },
     ];
 
     return (
         <div className="p-8 space-y-8 max-w-7xl mx-auto">
             <header>
-                <h1 className="text-3xl font-bold text-gray-900 italic uppercase tracking-tighter">PIT WALL: COMMAND CENTER</h1>
-                <p className="text-gray-500 text-sm">Managing community operations and real-time forensic logs.</p>
+                <h1 className="text-3xl font-bold text-gray-900 italic uppercase tracking-tighter">ADMIN: CONTROL CENTER</h1>
             </header>
 
-            <nav className="flex space-x-4 border-b border-gray-100">
+            <nav className="flex space-x-4 border-b border-gray-100 overflow-x-auto scrollbar-hide">
                 {tabs.map((tab) => (
                     <button
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id)}
-                        className={`flex items-center space-x-2 px-6 py-4 text-sm font-bold uppercase tracking-widest transition-all border-b-2 ${
+                        className={`flex items-center space-x-2 px-6 py-4 text-sm font-bold uppercase tracking-widest transition-all border-b-2 whitespace-nowrap ${
                             activeTab === tab.id ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-400 hover:text-gray-600'
                         }`}
                     >
@@ -40,6 +41,7 @@ export default function AdminDashboard() {
                 <div className="lg:col-span-3">
                     {activeTab === 'residents' && <ResidentDirectory />}
                     {activeTab === 'technicians' && <TechnicianDirectory />}
+                    {activeTab === 'amenities' && <AmenityDirectory />} {/* Render new component */}
                     {activeTab === 'financials' && <FinancialManager />}
                 </div>
                 <div className="lg:col-span-1">

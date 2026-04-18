@@ -37,8 +37,8 @@ export default function BookTechnician({ onBack }) {
         return (
             <div className="p-8 max-w-2xl mx-auto bg-white rounded-2xl shadow-sm border border-orange-200 text-center">
                 <CheckCircle2 className="w-16 h-16 text-orange-500 mx-auto mb-4" />
-                <h2 className="text-2xl font-bold text-gray-900 italic mb-2">CREW DISPATCHED</h2>
-                <p className="text-gray-500 mb-6">Your pit crew is scheduled.</p>
+                <h2 className="text-2xl font-bold text-gray-900 italic mb-2">TECHNICIAN DISPATCHED</h2>
+                <p className="text-gray-500 mb-6">Your Technician has been assigned</p>
                 <div className="bg-gray-50 p-6 rounded-xl text-left font-mono text-sm border border-gray-100">
                     <p><strong>Assignment ID:</strong> {invoice.assignment_id}</p>
                     <p><strong>Crew Member:</strong> {invoice.technician_name}</p>
@@ -54,9 +54,9 @@ export default function BookTechnician({ onBack }) {
     return (
         <div className="p-8 max-w-2xl mx-auto">
             <button onClick={onBack} className="flex items-center text-blue-600 mb-6 hover:underline font-medium">
-                <ChevronLeft className="w-4 h-4 mr-1" /> Back to Paddock
+                <ChevronLeft className="w-4 h-4 mr-1" /> Back to Dashboard
             </button>
-            <h2 className="text-2xl font-bold mb-6 italic tracking-tighter">REQUEST PIT CREW</h2>
+            <h2 className="text-2xl font-bold mb-6 italic tracking-tighter">REQUEST TECHNICAL STAFF</h2>
 
             <form onSubmit={handleBooking} className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 space-y-6">
                 <div>
@@ -76,8 +76,8 @@ export default function BookTechnician({ onBack }) {
                                onChange={(e) => setFormData({...formData, assign_date: e.target.value})} />
                     </div>
                     <div>
-                        <label className="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-widest">Time Slot (1-24)</label>
-                        <input type="number" min="1" max="24" required className="w-full p-3 border border-gray-200 rounded-xl bg-gray-50 focus:ring-2 focus:ring-blue-500 outline-none"
+                        <label className="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-widest">Time Slot (1-4)</label>
+                        <input type="number" min="1" max="4" required className="w-full p-3 border border-gray-200 rounded-xl bg-gray-50 focus:ring-2 focus:ring-blue-500 outline-none"
                                onChange={(e) => setFormData({...formData, slot: parseInt(e.target.value)})} />
                     </div>
                 </div>

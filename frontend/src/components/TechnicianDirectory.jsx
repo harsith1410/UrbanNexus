@@ -13,7 +13,7 @@ export default function TechnicianDirectory() {
         try {
             const res = await api.get('/admin/technicians');
             setTechs(res.data);
-        } catch (err) { console.error("Crew lookup failed"); }
+        } catch (err) { console.error("Staff lookup failed"); }
         finally { setLoading(false); }
     };
 
