@@ -301,34 +301,6 @@ BEGIN
 END//
 DELIMITER ;
 
--- 4. STORED PROCEDURE: Safe Book Amenity
-DELIMITER //
-DROP PROCEDURE IF EXISTS SafeBookAmenity//
-CREATE PROCEDURE SafeBookAmenity(
-    IN p_booking_id VARCHAR(50),
-    IN p_resident_id INT,
-    IN p_amenity_id INT,
-    IN p_date DATE,
-    IN p_capacity INT,
-    IN p_slot INT
-)
-BEGIN
-    START TRANSACTION;
-
-    IF NOT EXISTS (SELECT 1 FROM `UrbanNexus`.`resident` WHERE resident_id = p_resident_id) THEN
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Booking Failed: Resident ID does not exist.';
-        ROLLBACK;
-    ELSE
-        INSERT INTO `UrbanNexus`.`amenity_mgmt`
-        (booking_id, resident_id, amenity_id, date, status, capacity_booked, slot)
-        VALUES
-            (p_booking_id, p_resident_id, p_amenity_id, p_date, 'Confirmed', p_capacity, p_slot);
-
-        COMMIT;
-    END IF;
-END//
-DELIMITER ;
-
 -- 5. TRIGGER: Automatically calculate and add 18% GST to new invoices
 DELIMITER //
 DROP TRIGGER IF EXISTS CalculateGSTBeforePayment//
