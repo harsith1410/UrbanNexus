@@ -75,7 +75,7 @@ export default function ResidentDirectory() {
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
                     <div className="bg-white rounded-2xl w-full max-w-md p-8 relative">
                         <button onClick={() => setShowModal(false)} className="absolute top-4 right-4 text-gray-400"><X /></button>
-                        <h3 className="text-xl font-bold mb-6 italic uppercase">Register New Driver</h3>
+                        <h3 className="text-xl font-bold mb-6 italic uppercase">Register New Resident</h3>
                         <form onSubmit={handleAdd} className="space-y-4">
                             <input type="text" placeholder="Full Name" required className="w-full p-2 border rounded-lg" onChange={e => setFormData({...formData, name: e.target.value})} />
                             <div className="grid grid-cols-3 gap-2">

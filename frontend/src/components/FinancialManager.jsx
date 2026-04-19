@@ -44,7 +44,7 @@ export default function FinancialManager() {
 
             <table className="w-full text-left text-sm">
                 <thead className="bg-gray-50 text-[10px] uppercase font-bold text-gray-400">
-                <tr><th className="px-6 py-4">TXN #</th><th className="px-6 py-4">Driver</th><th className="px-6 py-4">Amount</th><th className="px-6 py-4">Status</th><th className="px-6 py-4 text-right">Action</th></tr>
+                <tr><th className="px-6 py-4">TXN #</th><th className="px-6 py-4">Resident</th><th className="px-6 py-4">Amount</th><th className="px-6 py-4">Status</th><th className="px-6 py-4 text-right">Action</th></tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                 {transactions.map(tx => (
