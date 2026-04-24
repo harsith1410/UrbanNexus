@@ -57,6 +57,7 @@ app.post('/api/login', async (req, res) => {
 
     } catch (error) {
         console.error('Login error:', error);
+        // Server Error
         res.status(500).json({ error: 'Technical Issue will be back in some time' });
     }
 });
